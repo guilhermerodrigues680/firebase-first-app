@@ -63,11 +63,21 @@ function formSubmitListener(event) {
   try {
     const email = $formFloatingEmail.value;
     registerUser(email, $formFloatingPassword.value);
-    showAlert("Sucesso", `Agora você possui um cadastro no site de repúblicas!`);
   } catch (error) {
     console.debug(error);
     showAlert(undefined, error.message, "error");
+    return; // Retorna em caso de erro
   }
+
+  showPersistentAlert(
+    "Sucesso",
+    `Agora você possui um cadastro no site de repúblicas! Redirecionando para login...`,
+    "success"
+  );
+  // Após 2 segundos redireciona para a página acessar.html
+  setTimeout(() => {
+    window.location.href = "acessar.html";
+  }, 2000);
 }
 
 function redirectIfLoggedUser() {
