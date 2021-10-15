@@ -10,14 +10,6 @@ const $formFloatingPassword = document.querySelector("#form-floating-password");
 const $form = document.querySelector("#form");
 
 // Functions
-function showAlert(title, text, icon = "success") {
-  Swal.fire({
-    title: title,
-    text: text,
-    confirmButtonColor: "#0d6efd",
-    icon: icon,
-  });
-}
 
 function formFloatingPasswordListener(event) {
   const pwdStrengthClasses = {
@@ -78,50 +70,10 @@ function formSubmitListener(event) {
   }
 }
 
-/**
- *
- * @param {String} email
- * @param {String} password
- */
-function registerUser(email, password) {
-  console.debug(email, password);
-  if (checkIfUserAlreadyRegistered(email)) {
-    throw new Error("Já exite um usuário no sistema usando o e-mail informado.");
+function redirectIfLoggedUser() {
+  if (checkLoggedUser()) {
+    showPersistentAlert(undefined, "Usuário já logado, redirecionando...");
   }
-
-  const usersDBStr = localStorage.getItem("users");
-
-  /**@type Array */
-  let usersDB;
-  if (usersDBStr) {
-    usersDB = JSON.parse(usersDBStr);
-  } else {
-    usersDB = [];
-  }
-
-  const newUser = {
-    email: email.trim(),
-    password: password,
-  };
-  usersDB.push(newUser);
-  localStorage.setItem("users", JSON.stringify(usersDB));
-}
-
-/**
- *
- * @param {String} email
- */
-function checkIfUserAlreadyRegistered(email) {
-  const usersDBStr = localStorage.getItem("users");
-  if (!usersDBStr) {
-    return false;
-  }
-
-  /**@type Array */
-  const usersDB = JSON.parse(usersDBStr);
-  const userIdx = usersDB.findIndex((u) => u.email === email);
-  // Se o idx for diferente de -1 o usuário já existe no sistema
-  return userIdx !== -1;
 }
 
 // Event listeners
@@ -129,3 +81,6 @@ function checkIfUserAlreadyRegistered(email) {
 $formFloatingPassword.addEventListener("change", formFloatingPasswordListener);
 $formFloatingPassword.addEventListener("input", formFloatingPasswordListener);
 $form.addEventListener("submit", formSubmitListener);
+
+// Actions
+redirectIfLoggedUser();
