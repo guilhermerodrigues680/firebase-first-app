@@ -91,8 +91,7 @@ export default {
       }
       console.debug({ res });
       const { localStream, remoteStream } = res;
-      // webcamVideo.srcObject = localStream;
-      localStream;
+      webcamVideo.srcObject = localStream;
       remoteVideo.srcObject = remoteStream;
     },
 
