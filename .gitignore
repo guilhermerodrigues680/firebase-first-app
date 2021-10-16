@@ -2,6 +2,11 @@
 node_modules
 /dist
 
+# Dev server HTTPS
+cert.pem
+key.pem
+keytmp.pem
+
 
 # local env files
 .env.local
