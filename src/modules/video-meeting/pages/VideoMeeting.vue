@@ -27,7 +27,12 @@
         <!-- VideoConferencia -->
         <div class="row pb-3">
           <div class="col-12 bg-dark rounded">
-            <div class="video-meeting"></div>
+            <div class="video-meeting">
+              <video ref="webcamVideo" autoplay playsinline></video>
+            </div>
+            <div class="video-meeting">
+              <video ref="remoteVideo" autoplay playsinline></video>
+            </div>
           </div>
         </div>
 
@@ -46,12 +51,85 @@
       <!-- Chat -->
       <div class="col-2 bg-1 rounded">col-2</div>
     </div>
+
+    <button @click="createOffer()">Criar oferta</button>
+
+    {{ callId }}
+
+    <form @submit.prevent="joinInCallFormSubmit($event)">
+      <input type="text" placeholder="ID" name="call_id" />
+      <button>Entrar na chamada</button>
+    </form>
   </div>
 </template>
 
 <script>
+import webrtc from "@/services/webrtc";
+
 export default {
   name: "VideoMeeting",
+
+  data: () => ({
+    callId: null,
+  }),
+
+  mounted() {
+    this.init();
+  },
+
+  methods: {
+    async init() {
+      const { webcamVideo, remoteVideo } = this.$refs;
+      console.debug({ webcamVideo, remoteVideo });
+
+      let res;
+      try {
+        res = await webrtc.setupMediaSources();
+      } catch (error) {
+        console.debug(error);
+        return;
+      }
+      console.debug({ res });
+      const { localStream, remoteStream } = res;
+      // webcamVideo.srcObject = localStream;
+      localStream;
+      remoteVideo.srcObject = remoteStream;
+    },
+
+    async createOffer() {
+      let res;
+      try {
+        res = await webrtc.createOffer();
+      } catch (error) {
+        console.debug(error);
+        return;
+      }
+      console.debug({ res });
+      this.callId = res.callId;
+    },
+
+    async joinInCallFormSubmit(event) {
+      /**@type HTMLFormElement */
+      const form = event.target;
+      const callId = form.elements.call_id.value;
+      console.debug(callId);
+      if (!callId) {
+        return;
+      }
+
+      let res;
+      try {
+        res = await webrtc.answerCall(callId);
+      } catch (error) {
+        console.debug(error);
+        alert("offer não encontrada");
+        return;
+      }
+
+      console.debug({ res });
+      alert("offer encontrada");
+    },
+  },
 };
 </script>
 
@@ -62,6 +140,6 @@ export default {
 
 .video-meeting {
   background: gray;
-  min-height: 50vh;
+  // min-height: 50vh;
 }
 </style>
