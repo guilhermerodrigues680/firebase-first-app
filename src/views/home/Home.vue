@@ -40,9 +40,9 @@ export default {
 
   watch: {
     formUsername() {
-      const valid = /^(?=.{8,20}$)(?![_.])(?!.*[_.]{2})[a-zA-Z0-9._]+(?<![_.])$/.test(
-        this.formUsername
-      );
+      // Safari doesn't support lookbehind
+      // const valid = /^(?=.{8,20}$)(?![_.])(?!.*[_.]{2})[a-zA-Z0-9._]+(?<![_.])$/.test(
+      const valid = /^(?=[a-zA-Z0-9._]{8,20}$)(?!.*[_.]{2})[^_.].*[^_.]$/.test(this.formUsername);
 
       if (valid) {
         this.$refs.formUsername.setCustomValidity("");
