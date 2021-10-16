@@ -1,4 +1,4 @@
-import database from "./database";
+import { realTimeDatabase as database } from "./database";
 import { ref, set, push, onValue } from "firebase/database";
 
 const chatMessagesPath = "chat/messages/";

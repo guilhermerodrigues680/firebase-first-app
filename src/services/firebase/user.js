@@ -1,7 +1,7 @@
-import database from "./database";
-import { ref, set, get, push, child } from "firebase/database";
+import { firestoreDatabase } from "./database";
+import { collection, addDoc, getDocs, getDoc, doc, query, where } from "firebase/firestore";
 
-const usersPath = "users/";
+const usersCollectionName = "users";
 
 /**
  *
@@ -10,16 +10,16 @@ const usersPath = "users/";
  * @param {*} email
  * @throws {Error} Lança uma exceção se não consegui salvar os dados
  */
-async function writeUserData(name, email) {
-  const userRef = ref(database, usersPath);
-  const pushUserRef = push(userRef);
-  const userId = pushUserRef.key;
-  console.debug(userId);
-  await set(pushUserRef, {
-    userId,
-    username: name,
-    email: email,
+async function writeUserData(username, email) {
+  const usersCollectionRef = collection(firestoreDatabase, usersCollectionName);
+  const docRef = await addDoc(usersCollectionRef, {
+    username,
+    email,
   });
+
+  const userId = docRef.id;
+  console.log("Document written with ID: ", userId);
+  return userId;
 }
 
 /**
@@ -28,13 +28,16 @@ async function writeUserData(name, email) {
  * @throws {Error} Lança uma exceção se não consegui recuperar os dados
  */
 async function readUserData(userId) {
-  const dbRef = ref(database);
-  const snapshot = await get(child(dbRef, `${usersPath}${userId}`));
-  if (snapshot.exists()) {
-    console.debug("snapshot.exists");
-    console.log(snapshot.val());
+  const userDocRef = doc(firestoreDatabase, usersCollectionName, userId);
+  const userDocSnap = await getDoc(userDocRef);
+  if (userDocSnap.exists()) {
+    const userData = userDocSnap.data();
+    console.log("Document data:", userData);
+    return userData;
   } else {
-    console.log("No data available");
+    // doc.data() will be undefined in this case
+    console.log("No such document!");
+    return null;
   }
 }
 
@@ -44,22 +47,60 @@ async function readUserData(userId) {
  * @throws {Error} Lança uma exceção se não consegui recuperar os dados
  */
 async function readUserDataByEmail(email) {
-  email;
-  const dbRef = ref(database);
-  child(dbRef, usersPath).orderByChild();
-  console.debug(dbRef);
-  database.ref;
-  // const snapshot = await get(child(dbRef, `${usersPath}${userId}`));
-  // if (snapshot.exists()) {
-  // console.debug("snapshot.exists");
-  // console.log(snapshot.val());
-  // } else {
-  // console.log("No data available");
-  // }
+  const usersCollectionRef = collection(firestoreDatabase, usersCollectionName);
+  const q = query(usersCollectionRef, where("email", "==", email));
+  const querySnapshot = await getDocs(q);
+
+  if (querySnapshot.size !== 0) {
+    querySnapshot.forEach((doc) => {
+      console.log("Document id: ", doc.id, " => ", doc.data());
+    });
+  } else {
+    console.log("No such document!");
+  }
+}
+
+/**
+ *
+ * @param {*} email
+ * @throws {Error} Lança uma exceção se não consegui recuperar os dados
+ */
+async function readUserDataByUsername(username) {
+  const usersCollectionRef = collection(firestoreDatabase, usersCollectionName);
+  const q = query(usersCollectionRef, where("username", "==", username));
+  const querySnapshot = await getDocs(q);
+
+  if (querySnapshot.size !== 0) {
+    if (querySnapshot.size !== 1) {
+      console.debug(querySnapshot.size !== 1, { username });
+    }
+    // querySnapshot.forEach((doc) => {
+    //   console.log("Document id: ", doc.id, " => ", doc.data());
+    // });
+    const doc = querySnapshot.docs[0];
+    const docId = doc.id;
+    const docData = doc.data();
+    console.log("Document id: ", docId, " => ", docData);
+    return {
+      _id: docId,
+      ...docData,
+    };
+  } else {
+    console.log("No such document!");
+    return null;
+  }
 }
 
 export default {
   writeUserData,
   readUserData,
   readUserDataByEmail,
+  readUserDataByUsername,
 };
+
+console.debug({
+  writeUserData,
+  readUserData,
+  readUserDataByEmail,
+  readUserDataByUsername,
+});
