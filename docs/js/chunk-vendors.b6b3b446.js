@@ -3405,4 +3405,3 @@ function X(t){q(new r["a"]("platform-logger",t=>new o(t),"PRIVATE")),Q(c,u,t),Q(
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */var p=function(){function t(t){this.name=t,this.providers=new Map}return t.prototype.addComponent=function(t){var e=this.getProvider(t.name);if(e.isComponentSet())throw new Error("Component "+t.name+" has already been registered with "+this.name);e.setComponent(t)},t.prototype.addOrOverwriteComponent=function(t){var e=this.getProvider(t.name);e.isComponentSet()&&this.providers.delete(t.name),this.addComponent(t)},t.prototype.getProvider=function(t){if(this.providers.has(t))return this.providers.get(t);var e=new h(t,this);return this.providers.set(t,e),e},t.prototype.getProviders=function(){return Array.from(this.providers.values())},t}()}}]);
-//# sourceMappingURL=chunk-vendors.b6b3b446.js.map
