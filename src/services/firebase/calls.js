@@ -4,30 +4,25 @@ import { collection, addDoc, onSnapshot, doc, getDoc, updateDoc } from "firebase
 
 const callsCollectionName = "calls";
 const offerSubCollectionName = "offerCandidates";
-// const answerSubCollectionName = "answerCandidates";
+const answerSubCollectionName = "answerCandidates";
 
-async function createOffer(offerSdp, offerType, answeredCallback) {
+async function createCall() {
   const callsRef = collection(firestoreDatabase, callsCollectionName);
-  // const answerCandidatesRef = collection(firestoreDatabase, callsCollectionName, answerSubCollectionName);
+  const docRef = await addDoc(callsRef, {});
+  const callId = docRef.id;
+  return callId;
+}
 
+async function createOffer(callId, offerSdp, offerType, answeredCallback, answeredICECallback) {
+  const callDocRef = doc(firestoreDatabase, callsCollectionName, callId);
   const offer = {
     sdp: offerSdp,
     type: offerType,
   };
+  await updateDoc(callDocRef, { offer });
 
-  const docRef = await addDoc(callsRef, { offer });
-  const callId = docRef.id;
-  console.log("Document written with ID (callId): ", callId);
-
-  const docSubRef = collection(docRef, offerSubCollectionName);
-  const docRef1 = await addDoc(docSubRef, offer);
-  const offerId = docRef1.id;
-  console.log("Document written with ID (offerId): ", offerId);
-
-  // const userDocRef = doc(firestoreDatabase, callsCollectionName, callId);
-  // const userDocSnap = await getDoc(userDocRef);
-
-  const unsub = onSnapshot(docRef, (doc) => {
+  // Aqui e um documento
+  const unsub = onSnapshot(callDocRef, (doc) => {
     console.debug("onSnapshot");
     const source = doc.metadata.hasPendingWrites ? "Local" : "Server";
     const data = doc.data();
@@ -39,9 +34,27 @@ async function createOffer(offerSdp, offerType, answeredCallback) {
   // TODO: Fazer o que com o unsub?
   unsub;
 
+  // When answered, add candidate to peer connection
+  const answerDocSubRef = collection(callDocRef, answerSubCollectionName);
+  // Aqui e uma colecao
+  const unsub2 = onSnapshot(answerDocSubRef, (snapshot) => {
+    console.debug(snapshot);
+    if (snapshot.empty) {
+      return;
+    }
+
+    snapshot.docChanges().forEach((change) => {
+      if (change.type === "added") {
+        const data = change.doc.data();
+        console.debug("onSnapshot answerDocSubRef", data);
+        answeredICECallback && answeredICECallback(data);
+      }
+    });
+  });
+  unsub2;
+
   return {
     callId,
-    offerId,
   };
 }
 
@@ -60,7 +73,7 @@ async function getOffer(callId) {
   return callData.offer;
 }
 
-async function answerCall(callId, answerType, answerSdp) {
+async function answerCall(callId, answerType, answerSdp, offerICECallback) {
   const callDocRef = doc(firestoreDatabase, callsCollectionName, callId);
   const answer = {
     type: answerType,
@@ -68,11 +81,42 @@ async function answerCall(callId, answerType, answerSdp) {
   };
 
   await updateDoc(callDocRef, { answer });
+
+  const offerDocSubRef = collection(callDocRef, offerSubCollectionName);
+  onSnapshot(offerDocSubRef, (snapshot) => {
+    snapshot.docChanges().forEach((change) => {
+      console.debug("offerDocSubRef.onSnapshot", change);
+      if (change.type === "added") {
+        let data = change.doc.data();
+        offerICECallback && offerICECallback(data);
+      }
+    });
+  });
+
   return;
 }
 
+async function pushIceOffer(callId, ice) {
+  const callDocRef = doc(firestoreDatabase, callsCollectionName, callId);
+  const offerDocSubRef = collection(callDocRef, offerSubCollectionName);
+  const docRef1 = await addDoc(offerDocSubRef, ice);
+  const iceOfferId = docRef1.id;
+  console.log("Document written with ID (iceOfferId): ", iceOfferId);
+}
+
+async function pushIceAnswer(callId, ice) {
+  const callDocRef = doc(firestoreDatabase, callsCollectionName, callId);
+  const answerDocSubRef = collection(callDocRef, answerSubCollectionName);
+  const docRef1 = await addDoc(answerDocSubRef, ice);
+  const iceAnswerId = docRef1.id;
+  console.log("Document written with ID (iceAnswerId): ", iceAnswerId);
+}
+
 export default {
+  createCall,
   createOffer,
   getOffer,
   answerCall,
+  pushIceOffer,
+  pushIceAnswer,
 };

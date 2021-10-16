@@ -1,12 +1,13 @@
 import firebase from "@/services/firebase";
 
 const servers = {
-  iceServers: [
-    {
-      urls: ["stun:stun1.l.google.com:19302", "stun:stun2.l.google.com:19302"],
-    },
-  ],
-  iceCandidatePoolSize: 10,
+  // iceServers: [
+  //   {
+  //     urls: ["stun:stun1.l.google.com:19302", "stun:stun2.l.google.com:19302"],
+  //   },
+  // ],
+  // iceCandidatePoolSize: 10,
+  iceServers: [{ urls: "stun:stun.l.google.com:19302" }],
 };
 
 // Global State
@@ -42,10 +43,14 @@ async function setupMediaSources() {
 }
 
 async function createOffer() {
+  const callId = await firebase.calls.createCall();
+  console.debug("callId", callId);
+
   // Get candidates for caller, save to db
   pc.onicecandidate = (event) => {
-    console.debug("Get candidates for caller, save to db", { event }, event?.candidate?.toJSON());
-    // event.candidate && offerCandidates.add(event.candidate.toJSON());
+    // console.debug("Get candidates for caller, save to db", { event }, event?.candidate?.toJSON());
+    console.debug("Get candidates for caller, save to db");
+    event.candidate && firebase.calls.pushIceOffer(callId, event.candidate.toJSON());
   };
 
   // Create offer
@@ -61,10 +66,18 @@ async function createOffer() {
     }
   };
 
+  const answeredICECallback = (ice) => {
+    console.debug("answeredICECallback");
+    const candidate = new RTCIceCandidate(ice);
+    pc.addIceCandidate(candidate);
+  };
+
   return await firebase.calls.createOffer(
+    callId,
     offerDescription.sdp,
     offerDescription.type,
-    answeredCallback
+    answeredCallback,
+    answeredICECallback
   );
 }
 
@@ -73,8 +86,10 @@ async function answerCall(callId) {
   // await pc.setRemoteDescription(new RTCSessionDescription(offerDescription));
 
   pc.onicecandidate = (event) => {
-    console.debug("answerCall caller", { event }, event?.candidate?.toJSON());
+    // console.debug("answerCall caller", { event }, event?.candidate?.toJSON());
+    console.debug("answerCall caller");
     // event.candidate && answerCandidates.add(event.candidate.toJSON());
+    event.candidate && firebase.calls.pushIceAnswer(callId, event.candidate.toJSON());
   };
 
   await pc.setRemoteDescription(new RTCSessionDescription(offerDescription));
@@ -82,7 +97,17 @@ async function answerCall(callId) {
   const answerDescription = await pc.createAnswer();
   await pc.setLocalDescription(answerDescription);
 
-  const r0 = await firebase.calls.answerCall(callId, answerDescription.type, answerDescription.sdp);
+  const offerICECallback = (ice) => {
+    console.debug("offerICECallback called");
+    pc.addIceCandidate(new RTCIceCandidate(ice));
+  };
+
+  const r0 = await firebase.calls.answerCall(
+    callId,
+    answerDescription.type,
+    answerDescription.sdp,
+    offerICECallback
+  );
   console.debug(r0);
 
   return offerDescription;
