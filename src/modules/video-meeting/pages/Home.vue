@@ -1,3 +1,5 @@
 <template>
-  <div>Video Meeti</div>
+  <div>
+    <router-link to="/video/meeting"> Video Meeting </router-link>
+  </div>
 </template>

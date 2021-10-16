@@ -26,11 +26,11 @@
 
         <!-- VideoConferencia -->
         <div class="row pb-3">
-          <div class="col-12 bg-dark rounded">
+          <div class="col-12 rounded video-meeting-container">
             <div class="video-meeting">
               <video ref="webcamVideo" autoplay playsinline></video>
             </div>
-            <div class="video-meeting">
+            <div class="video-meeting video-meeting--guest">
               <video ref="remoteVideo" autoplay playsinline></video>
             </div>
           </div>
@@ -93,6 +93,8 @@ export default {
       const { localStream, remoteStream } = res;
       webcamVideo.srcObject = localStream;
       remoteVideo.srcObject = remoteStream;
+      // FIXME: Remove isso, usado para testes locais
+      // remoteVideo.srcObject = localStream;
     },
 
     async createOffer() {
@@ -136,9 +138,37 @@ export default {
 .bg-1 {
   background: #f0f4f9;
 }
-
-.video-meeting {
+.video-meeting-container {
+  position: relative;
   background: gray;
-  // min-height: 50vh;
+  height: 50vh;
+
+  .video-meeting {
+    position: absolute;
+    top: 0.25rem;
+    right: 0.25rem;
+    z-index: 5;
+
+    video {
+      border-radius: 0.5rem;
+      height: 100px;
+    }
+
+    &.video-meeting--guest {
+      top: 0;
+      right: 0;
+      bottom: 0;
+      left: 0;
+      z-index: 4;
+      display: flex;
+      justify-content: center;
+
+      video {
+        border-radius: 0rem;
+        height: 100%;
+        width: 100%;
+      }
+    }
+  }
 }
 </style>
