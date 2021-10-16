@@ -1,0 +1,1 @@
+(window["webpackJsonp"]=window["webpackJsonp"]||[]).push([["chunk-2d22d072"],{f66b:function(e,n,t){"use strict";t.r(n);var i=function(){var e=this,n=e.$createElement,t=e._self._c||n;return t("div",[t("router-link",{attrs:{to:"/video/meeting"}},[e._v(" Video Meeting ")])],1)},o=[],r=t("2877"),u={},l=Object(r["a"])(u,i,o,!1,null,null,null);n["default"]=l.exports}}]);
