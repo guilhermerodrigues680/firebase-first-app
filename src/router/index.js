@@ -1,12 +1,18 @@
 import Vue from "vue";
 import VueRouter from "vue-router";
 import Home from "@/views/home/Home.vue";
+import siteModule from "@/modules/site";
+import videoMeetingModule from "@/modules/video-meeting";
 
 Vue.use(VueRouter);
 
 const routes = [
   {
     path: "/",
+    redirect: "/site",
+  },
+  {
+    path: "/home",
     name: "Home",
     component: Home,
   },
@@ -14,6 +20,16 @@ const routes = [
     path: "/chat",
     name: "Chat",
     component: () => import(/* webpackChunkName: "chat" */ "@/views/chat/Chat.vue"),
+  },
+  {
+    path: "/site",
+    component: () => import("@/modules/site/SiteView.vue"),
+    children: siteModule.routes,
+  },
+  {
+    path: "/video",
+    component: () => import("@/modules/video-meeting/ModuleView.vue"),
+    children: videoMeetingModule.routes,
   },
 ];
 
