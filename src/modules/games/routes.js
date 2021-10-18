@@ -5,7 +5,8 @@ const routes = [
   },
   {
     path: "cat-vs-dog-board-game",
-    component: () => import("./pages/CatVsDogBoardGame.vue"),
+    component: () =>
+      import(/* webpackChunkName: "cat-vs-dog-board-game" */ "./pages/CatVsDogBoardGame.vue"),
   },
 ];
 
