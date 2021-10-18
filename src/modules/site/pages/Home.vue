@@ -13,6 +13,10 @@
       <li>
         <router-link to="/video">Videoconferência</router-link>
       </li>
+
+      <li>
+        <router-link to="/games">Games</router-link>
+      </li>
     </ul>
   </div>
 </template>

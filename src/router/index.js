@@ -3,6 +3,7 @@ import VueRouter from "vue-router";
 import Home from "@/views/home/Home.vue";
 import siteModule from "@/modules/site";
 import videoMeetingModule from "@/modules/video-meeting";
+import gamesModule from "@/modules/games";
 
 Vue.use(VueRouter);
 
@@ -30,6 +31,11 @@ const routes = [
     path: "/video",
     component: () => import("@/modules/video-meeting/ModuleView.vue"),
     children: videoMeetingModule.routes,
+  },
+  {
+    path: "/games",
+    component: () => import("@/modules/games/ModuleView.vue"),
+    children: gamesModule.routes,
   },
 ];
 
